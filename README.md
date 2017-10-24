@@ -19,3 +19,14 @@ This query returns the number of data points per calendar year
   GROUP BY year
   ORDER BY year;
 ```
+
+##### Data per ticker
+
+This query returns the number of data points per ticker, sorted in descending order
+
+```sql
+  SELECT ticker, COUNT(*) AS total
+  FROM stocks."stockData"
+  GROUP BY ticker
+  ORDER BY total DESC;
+```
