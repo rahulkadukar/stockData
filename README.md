@@ -15,7 +15,7 @@ This query returns the number of data points per calendar year
 ```sql
   SELECT date_trunc('year', date) AS year,
          COUNT(*) 
-  FROM stocks."rawData"
+  FROM "stocks"."rawData"
   GROUP BY year
   ORDER BY year;
 ```
@@ -26,7 +26,7 @@ This query returns the number of data points per ticker, sorted in descending or
 
 ```sql
   SELECT ticker, COUNT(*) AS total
-  FROM stocks."stockData"
+  FROM "stocks"."stockData"
   GROUP BY ticker
   ORDER BY total DESC;
 ```
