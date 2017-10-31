@@ -13,6 +13,15 @@ const pgsql = new Client({
 let totalTickers;
 let batchSize = 200;
 var t0;
+var allTickers = [];
+
+function zeroPad(x) {
+  let num = x.toString();
+  while (num.length < 4) {
+    num = '0' + num;
+  }
+  return num;
+}
 
 function parsePostgresOutput(pgsqlData) {
   let str = JSON.stringify(pgsqlData);
@@ -34,13 +43,27 @@ function initializeCalculations() {
       totalTickers = parsePostgresOutput(result);
       console.log(totalTickers[0].count);
       t0 = (new Date).getTime();
-      startDataFetch(0);
+      preFetchData();
     }
   })
 }
 
+function preFetchData() {
+  let allTickerQuery = 'SELECT DISTINCT ticker FROM "stocks"."stockData" ' +
+    'ORDER BY ticker ASC';
+  
+  pgsql.query(allTickerQuery, (err, result) => {
+    if (err) {
+      console.log("Issue in fetching all distinct tickers");
+    } else {
+      allTickers = parsePostgresOutput(result);
+      startDataFetch(0);
+    }
+  });
+}
+
 function startDataFetch(e) {
-  if (e > totalTickers) {
+  if (e > totalTickers[0].count) {
     process.exit();
     return;
   } else {
@@ -51,29 +74,25 @@ function startDataFetch(e) {
 }
 
 function fetchData(e) {
-  return new Promise((resolve, reject) => {
-    let fetchQuery = 'SELECT DISTINCT "ticker" FROM "stocks"."stockData" OFFSET ' +
-      e + ' LIMIT ' + batchSize;
-    
-    pgsql.query(fetchQuery, (err, result) => {
-      if (err) {
-        console.log("Error in fetching data for OFFSET " + e);
-        resolve();
-      } else {
-        let oData = parsePostgresOutput(result);
-        let promises = [];
+  let x = 10;
 
-        for (let x in oData) {
-          promises.push(calculateRunningAverage(oData[x].ticker));
-        }
-        
-        Promise.all(promises).then(() => {
-          let z = (new Date).getTime() - t0;    
-          console.log(oData[0].ticker + ' to ' + oData[oData.length - 1].ticker + ' took ' + z + ' µs');
-          t0 = (new Date).getTime();
-          resolve();
-        });
+  return new Promise((resolve, reject) => {
+    let promises = [];
+    let beginStock = allTickers[x].ticker;
+    let endStock;
+
+    for (let x = 0; x < allTickers.length; ++x) {
+      if (x >= e && x < (e + batchSize)) {
+        promises.push(calculateRunningAverage(allTickers[x].ticker));
+        endStock = allTickers[x].ticker;
       }
+    }
+
+    Promise.all(promises).then(() => {
+      let z = (new Date).getTime() - t0;
+      console.log(beginStock + ' to ' + endStock + ' took ' + z + ' µs');
+      t0 = (new Date).getTime();
+      resolve();
     });
   });
 }
@@ -103,7 +122,7 @@ function calculateRunningAverage(ticker) {
           let start = 0;
           let stop = 0;
           let openAvg = 0.0000;
-          let duration = 'm' + intervals[a];
+          let duration = 'm' + zeroPad(intervals[a]);
           movingAvg[duration] = [];
           
           let mover = intervals[a];
@@ -170,7 +189,7 @@ function insertDataIntoTable(i, ticker, movingAvg) {
     } else {
       pgsql.query(rawQuery.slice(0, -2), (err, result) => {
         if (err) {
-          console.log("Error in inserting data for ticker");
+          console.log("Error in inserting data for ticker " + ticker + " for i " + i);
           console.log(err);
         }
         resolve();

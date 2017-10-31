@@ -24,11 +24,12 @@ var stockData = [];
 let totalCount = 0;
 
 function initializeCalculations() {
-  var sql = 'SELECT ticker, COUNT(*) AS total FROM "stocks"."stockData" GROUP BY ticker';
+  var sql = 'SELECT ticker, COUNT(*) AS total FROM "stocks"."stockData" ' +
+    'WHERE "tickerDate" > \'2010-01-01\' GROUP BY ticker';
   
   pgsql.query(sql, function (err, rows) {
     if (err) { 
-      
+      console.log(sql);
     } else {
       let result = parsePostgresOutput(rows);
 
@@ -38,7 +39,7 @@ function initializeCalculations() {
 
       for (let x in stockData) {
         let y = (stockData[x].total);
-        let dynamic = [50, 100, 200];
+        let dynamic = [5, 10, 20, 30, 40, 50, 100, 200];
 
         for (let a in dynamic) {
           let z = y - dynamic[a];
@@ -49,7 +50,8 @@ function initializeCalculations() {
       }
 
       console.log(totalCount);
-      console.log((new Date).getTime() - t0 + " microseconds");
+      console.log((new Date).getTime() - t0 + " µs");
+      process.exit();
     }
   });
 }
