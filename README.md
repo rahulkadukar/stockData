@@ -1,3 +1,19 @@
+### Database connection settings
+
+Create a file at controllers/privateSettings.js with these contents
+
+```javascript
+let dbConnection = {
+  user: 'dbUserName',
+  host: 'dbIPAddress',
+  database: 'dbName',
+  password: 'dbPassword',
+  port: 5432
+};
+
+module.exports = dbConnection;
+```
+
 ### Stock data queries
 
 ##### Distinct Stocks
