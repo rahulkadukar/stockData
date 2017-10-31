@@ -1,0 +1,96 @@
+html(lang="en")
+  head
+    title= pageTitle
+    script(type='text/javascript', src="http://code.jquery.com/jquery-1.9.1.min.js")
+    script(type='text/javascript' src='http://code.highcharts.com/stock/highstock.js')
+    script(type='text/javascript' src='http://code.highcharts.com/stock/modules/exporting.js')
+    script(type='text/javascript', src="http://code.highcharts.com/modules/exporting.js")
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/highcharts/5.0.12/css/highcharts.css')
+  body
+    #container(style='height: 80%')
+    h4#header(style='text-align:center')
+    script.
+      $( document ).ready(function() {
+        var rawData = "#{data}";
+        var stockData = JSON.parse(rawData.replace(/&quot;/g,'"'));
+        var openData = [];
+        var closeData = [];
+        var avgData = [];
+        var dateData = [];
+        var seriesTable = [];
+        var seriesValue = {};
+        var seriesValu = {};
+
+        $("#header").text('Time taken to execute ' + stockData.time + ' milliseconds');
+        console.log(stockData);
+
+        var someData = [];
+        var some2Data = [];
+        for(x in stockData.data) {
+          someData.push(stockData.data[x]);
+          var temp = [];
+          var ten = [];
+          temp.push($.extend(ten, stockData.data[x]));
+          temp[0][1] += 1;
+          some2Data.push(temp[0]);
+        }
+
+        console.log(someData);
+        seriesValue = {};
+        seriesValue.name = stockData.stock;
+        seriesValue.data = someData;
+        seriesValue.tooltip = {};
+        seriesValue.tooltip.valueDecimals = 2;
+        seriesTable.push(seriesValue);
+        seriesValu.name = 'RAND';
+        seriesValu.data = some2Data;
+        seriesValu.tooltip = {};
+        seriesValu.tooltip.valueDecimals = 2;
+        seriesTable.push(seriesValu);
+        var allAverages = [];
+        
+        var temp = {};
+        temp.name = 'Stock Price';
+        temp.data = openData;
+        allAverages.push(temp);
+
+        var stockDataTable = [];
+        for (var x in stockData.avg) {
+          var tasData = [];
+          for(var y in stockData.avg[x]) {
+            var something = stockData.avg[x][y];
+            tasData.push(something);
+          }
+          var seriesType = {};
+          seriesType.type = 'candlestick';
+          seriesType.name = x;
+          seriesType.data = tasData;
+          seriesType.tooltip = {};
+          seriesType.tooltip.valueDecimals = 2;
+          stockDataTable.push(seriesType);
+        }
+
+        console.log(stockDataTable);
+        Highcharts.stockChart('container', {
+          rangeSelector: {
+            selected: 1
+          },
+
+          title: {
+            text: stockData.stock + ' Stock Price'
+          },
+
+          yAxis: {
+            lineWidth: 2,
+            offset: 40,
+            labels: {
+              align: 'right',
+              x: -3,
+              y: 6
+            },
+            showLastLabel: true
+          },
+
+          series: stockDataTable 
+        });
+      });

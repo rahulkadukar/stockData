@@ -1,0 +1,67 @@
+html(lang="en")
+  head
+    title= pageTitle
+    script(type='text/javascript', src="http://code.jquery.com/jquery-1.9.1.min.js")
+    script(type='text/javascript' src='/js/highstock.js')
+    script(type='text/javascript' src='http://code.highcharts.com/stock/modules/exporting.js')
+    script(type='text/javascript', src="http://code.highcharts.com/modules/exporting.js")
+  body
+    #container(style='height: 80%')
+    h4#header(style='text-align:center')
+    script.
+      $( document ).ready(function() {
+        var rawData = "#{data}";
+        var stockData = JSON.parse(rawData.replace(/&quot;/g,'"'));
+        var openData = [];
+        var closeData = [];
+        var avgData = [];
+        var dateData = [];
+        var seriesTable = [];
+        var seriesValue = {};
+        var seriesValu = {};
+
+        $("#header").text('Time taken to execute ' + stockData.time + ' milliseconds');
+
+        var stockDataTable = [];
+        for (var x in stockData.avg) {
+          var tasData = [];
+          for(var y in stockData.avg[x]) {
+            var something = stockData.avg[x][y];
+            tasData.push(something);
+          }
+          var seriesType = {};
+          seriesType.type = 'spline';
+          if (x === 'm0') {
+            seriesType.name = 'Price';
+          } else {
+            seriesType.name = x.replace('m', 'MAVG ');
+          }
+          seriesType.data = tasData;
+          seriesType.tooltip = {};
+          seriesType.tooltip.valueDecimals = 2;
+          stockDataTable.push(seriesType);
+        }
+
+        Highcharts.stockChart('container', {
+          rangeSelector: {
+            selected: 1
+          },
+
+          title: {
+            text: stockData.stock + ' Stock Price'
+          },
+
+          yAxis: {
+            lineWidth: 2,
+            offset: 40,
+            labels: {
+              align: 'right',
+              x: -3,
+              y: 6
+            },
+            showLastLabel: true
+          },
+
+          series: stockDataTable 
+        });
+      });

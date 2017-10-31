@@ -1,2 +1,3 @@
 node_modules/
 controllers/privateSettings.js
+public/js/highstock.js

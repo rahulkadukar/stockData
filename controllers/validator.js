@@ -25,7 +25,7 @@ let totalCount = 0;
 
 function initializeCalculations() {
   var sql = 'SELECT ticker, COUNT(*) AS total FROM "stocks"."stockData" ' +
-    'WHERE "tickerDate" > \'2010-01-01\' GROUP BY ticker';
+    'WHERE "tickerDate" > \'2009-01-01\' GROUP BY ticker';
   
   pgsql.query(sql, function (err, rows) {
     if (err) { 

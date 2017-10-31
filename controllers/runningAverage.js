@@ -102,7 +102,7 @@ function calculateRunningAverage(ticker) {
     let movingAvg = {};    
     let stockData = [];
     let fetchQuery = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' +
-      ticker + '\' ORDER BY "tickerDate" ASC';
+      ticker + '\' AND "tickerDate" > \'2009-01-01\' ORDER BY "tickerDate" ASC';
     
     pgsql.query(fetchQuery, (err, result) => {
       if (err) {
