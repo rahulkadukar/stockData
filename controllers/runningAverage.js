@@ -13,11 +13,12 @@ const pgsql = new Client({
 let totalTickers;
 let batchSize = 200;
 var t0;
+var timeStart = (new Date).getTime();
 var allTickers = [];
 
 function zeroPad(x) {
   let num = x.toString();
-  while (num.length < 4) {
+  while (num.length < 3) {
     num = '0' + num;
   }
   return num;
@@ -64,6 +65,8 @@ function preFetchData() {
 
 function startDataFetch(e) {
   if (e > totalTickers[0].count) {
+    let z = (new Date).getTime() - timeStart;
+    console.log('Total time taken: ' + z + ' µs');
     process.exit();
     return;
   } else {
@@ -78,7 +81,7 @@ function fetchData(e) {
 
   return new Promise((resolve, reject) => {
     let promises = [];
-    let beginStock = allTickers[x].ticker;
+    let beginStock = allTickers[e].ticker;
     let endStock;
 
     for (let x = 0; x < allTickers.length; ++x) {
@@ -116,7 +119,7 @@ function calculateRunningAverage(ticker) {
           stockData.push(oData[x]);
         }
 
-        let intervals = [50, 100, 200];
+        let intervals = [5, 10, 30, 50, 100, 200];
 
         for (let a in intervals) {
           let start = 0;

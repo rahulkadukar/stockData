@@ -39,7 +39,7 @@ function initializeCalculations() {
 
       for (let x in stockData) {
         let y = (stockData[x].total);
-        let dynamic = [5, 10, 20, 30, 40, 50, 100, 200];
+        let dynamic = [5, 10, 30, 50, 100, 200];
 
         for (let a in dynamic) {
           let z = y - dynamic[a];
