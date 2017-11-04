@@ -14,7 +14,7 @@ let totalTickers;
 let batchSize = 200;
 var t0;
 var timeStart = (new Date).getTime();
-var allTickers = [];
+var tickerData = [];
 
 function zeroPad(x) {
   let num = x.toString();
@@ -42,7 +42,6 @@ function initializeCalculations() {
       console.log("Issue in determining count of tickers");
     } else {
       totalTickers = parsePostgresOutput(result);
-      console.log(totalTickers[0].count);
       t0 = (new Date).getTime();
       preFetchData();
     }
@@ -57,10 +56,50 @@ function preFetchData() {
     if (err) {
       console.log("Issue in fetching all distinct tickers");
     } else {
-      allTickers = parsePostgresOutput(result);
-      startDataFetch(0);
+      let allTickers = parsePostgresOutput(result);
+      fetchMaxDate(allTickers);
     }
   });
+}
+
+function fetchMaxDate(allTickers) {
+  let maxTimeQuery = 'SELECT "ticker", MAX("tickerDate") AS "maxDate" FROM "stocks"."runningAvg" ' +
+  'GROUP BY "ticker" ORDER BY "ticker" ASC';
+  pgsql.query(maxTimeQuery, (err, result) => {
+    if (err) {
+      console.log("Error in fetching max date from running Average");
+    } else {
+      maxTime = parsePostgresOutput(result);
+      // console.log(maxTime);
+
+      let z = (new Date).getTime();
+      allTickers.push({'ticker': 'XXXX'});
+      for (let x in allTickers) {
+        let tickerDateData = {};
+        let something = -1;
+        maxTime.find((element, index) => {
+          if (allTickers[x].ticker === element.ticker) {
+            something = index;
+            tickerDateData.tickerDate = element.maxDate.slice(0, 10);
+          }
+        });
+
+        if (something === -1) {
+          tickerDateData.tickerDate = '2009-01-01';
+        }
+
+        tickerDateData.ticker = allTickers[x].ticker;
+        tickerData.push(tickerDateData);
+      }
+
+      let zf = (new Date).getTime() - z;
+      console.log(zf + ' µs');
+      process.exit();
+      return;
+
+      startDataFetch(0);
+    }  
+  })
 }
 
 function startDataFetch(e) {
