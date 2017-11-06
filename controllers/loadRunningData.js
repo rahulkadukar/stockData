@@ -70,7 +70,6 @@ function fetchMaxDate(allTickers) {
       console.log("Error in fetching max date from running Average");
     } else {
       maxTime = parsePostgresOutput(result);
-      // console.log(maxTime);
 
       let z = (new Date).getTime();
       allTickers.push({'ticker': 'XXXX'});
@@ -80,12 +79,17 @@ function fetchMaxDate(allTickers) {
         maxTime.find((element, index) => {
           if (allTickers[x].ticker === element.ticker) {
             something = index;
-            tickerDateData.tickerDate = element.maxDate.slice(0, 10);
+            let maxDate = element.maxDate.slice(0, 10);
+            tickerDateData.maxDate = maxDate;
+            let yearMaxDate = (maxDate.slice(0,4) - 1).toString();
+            tickerDateData.tickerDate = yearMaxDate + '-' +
+              maxDate.slice(5,7) + '-' + maxDate.slice(8,10);
           }
         });
 
         if (something === -1) {
           tickerDateData.tickerDate = '2009-01-01';
+          tickerDateData.maxDate = '2009-01-01';;
         }
 
         tickerDateData.ticker = allTickers[x].ticker;
@@ -93,10 +97,7 @@ function fetchMaxDate(allTickers) {
       }
 
       let zf = (new Date).getTime() - z;
-      console.log(zf + ' µs');
-      process.exit();
-      return;
-
+      console.log('Time taken to prepare the tickerData ' + zf + ' µs');
       startDataFetch(0);
     }  
   })
@@ -120,13 +121,13 @@ function fetchData(e) {
 
   return new Promise((resolve, reject) => {
     let promises = [];
-    let beginStock = allTickers[e].ticker;
+    let beginStock = tickerData[e].ticker;
     let endStock;
 
-    for (let x = 0; x < allTickers.length; ++x) {
+    for (let x = 0; x < tickerData.length; ++x) {
       if (x >= e && x < (e + batchSize)) {
-        promises.push(calculateRunningAverage(allTickers[x].ticker));
-        endStock = allTickers[x].ticker;
+        promises.push(calculateRunningAverage(tickerData[x]));
+        endStock = tickerData[x].ticker;
       }
     }
 
@@ -143,12 +144,12 @@ function calculateRunningAverage(ticker) {
   return new Promise((resolve, reject) => {
     let movingAvg = {};    
     let stockData = [];
-    let fetchQuery = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' +
-      ticker + '\' AND "tickerDate" > \'2009-01-01\' ORDER BY "tickerDate" ASC';
+    let fetchQuery = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' + ticker.ticker +
+      '\' AND "tickerDate" > \'' + ticker.tickerDate + '\' ORDER BY "tickerDate" ASC';
     
     pgsql.query(fetchQuery, (err, result) => {
       if (err) {
-        console.log("Error in fetching data for ticker " + ticker);
+        console.log("Error in fetching data for ticker " + ticker.ticker);
         resolve();
       } else {
         let oData = parsePostgresOutput(result);
@@ -176,7 +177,9 @@ function calculateRunningAverage(ticker) {
               let avgRecord = {};
               avgRecord.avgDate = stockData[y].tickerDate.slice(0, 10);
               avgRecord.price = ((openAvg / mover).toFixed(2));
-              movingAvg[duration].push(avgRecord);
+              if (ticker.maxDate < avgRecord.avgDate) {
+                movingAvg[duration].push(avgRecord);
+              }
               openAvg -= (stockData[y - mover].closePrice + stockData[y - mover].openPrice) / 2;
             } else {
               stop++;
@@ -189,7 +192,7 @@ function calculateRunningAverage(ticker) {
         let maxLength = 12;
 
         for (let a = 0; a < maxLength; ++a) {
-          promises.push(insertDataIntoTable(x, ticker, movingAvg));
+          promises.push(insertDataIntoTable(x, ticker.ticker, movingAvg));
           x++;
         }
 
