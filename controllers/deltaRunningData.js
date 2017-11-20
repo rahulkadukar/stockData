@@ -10,11 +10,11 @@ const pgsql = new Client({
   port: dbConnection.port
 })
 
+let tickerData = ['A'];
 let totalTickers;
 let batchSize = 200;
 var t0;
 var timeStart = (new Date).getTime();
-var allTickers = [];
 
 function zeroPad(x) {
   let num = x.toString();
@@ -31,74 +31,36 @@ function parsePostgresOutput(pgsqlData) {
 }
 
 pgsql.connect()
-initializeCalculations();
+deltaRunning().then(() => {
+  process.exit();
+})
 
-function initializeCalculations() {
-  let countTickerQuery = 'SELECT COUNT(*) FROM ' +
-  '(SELECT DISTINCT ticker FROM "stocks"."stockData") AS temp';
-
-  pgsql.query(countTickerQuery, (err, result) => {
-    if (err) {
-      console.log("Issue in determining count of tickers");
-    } else {
-      totalTickers = parsePostgresOutput(result);
-      console.log(totalTickers[0].count);
-      t0 = (new Date).getTime();
-      preFetchData();
-    }
-  })
-}
-
-function preFetchData() {
-  let allTickerQuery = 'SELECT DISTINCT ticker FROM "stocks"."stockData" ' +
-    'ORDER BY ticker ASC';
-  
-  pgsql.query(allTickerQuery, (err, result) => {
-    if (err) {
-      console.log("Issue in fetching all distinct tickers");
-    } else {
-      allTickers = parsePostgresOutput(result);
-
-      let maxTimeTicker = 'SELECT '
-
-      startDataFetch(0);
-    }
-  });
-}
-
-function startDataFetch(e) {
-  if (e > totalTickers[0].count) {
-    let z = (new Date).getTime() - timeStart;
-    console.log('Total time taken: ' + z + ' µs');
-    process.exit();
-    return;
-  } else {
-    fetchData(e).then(() => {
-      startDataFetch(e + batchSize);
-    });
-  }
-}
-
-function fetchData(e) {
-  let x = 10;
-
+function deltaRunning() {
   return new Promise((resolve, reject) => {
     let promises = [];
-    let beginStock = allTickers[e].ticker;
-    let endStock;
-
-    for (let x = 0; x < allTickers.length; ++x) {
-      if (x >= e && x < (e + batchSize)) {
-        promises.push(calculateRunningAverage(allTickers[x].ticker));
-        endStock = allTickers[x].ticker;
-      }
+    for (let x = 0; x < tickerData.length; ++x) {
+      promises.push(deleteExistingData(tickerData[x]));
     }
 
     Promise.all(promises).then(() => {
-      let z = (new Date).getTime() - t0;
-      console.log(beginStock + ' to ' + endStock + ' took ' + z + ' µs');
-      t0 = (new Date).getTime();
+      console.log('COMPLETED PROCESSING');
       resolve();
+    });
+  });
+}
+
+function deleteExistingData(ticker) {
+  return new Promise((resolve, reject) => {
+    let sql = 'DELETE FROM "stocks"."runningAvg" WHERE ticker = \'' + ticker + '\'';
+    pgsql.query(sql, (err, result) => {
+      if (err) {
+        console.log('Error in deleting data for ticker ' + ticker);
+      } else {
+        calculateRunningAverage(ticker).then(() => {
+          console.log('Processing completed for ' + ticker);
+          resolve();
+        });
+      }
     });
   });
 }
@@ -107,8 +69,8 @@ function calculateRunningAverage(ticker) {
   return new Promise((resolve, reject) => {
     let movingAvg = {};    
     let stockData = [];
-    let fetchQuery = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' +
-      ticker + '\' AND "tickerDate" > \'2009-01-01\' ORDER BY "tickerDate" ASC';
+    let fetchQuery = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' + ticker +
+      '\' AND "tickerDate" > \'2009-01-01\' ORDER BY "tickerDate" ASC';
     
     pgsql.query(fetchQuery, (err, result) => {
       if (err) {

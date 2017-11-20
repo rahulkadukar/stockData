@@ -45,7 +45,7 @@ exports.showStocks = function (req, res) {
         tempData.push(result[x]);
       }
 
-      var dynamic = [50, 100, 200];
+      var dynamic = [30, 50, 100, 200];
       var movingAvg = {};
       movingAvg['m0'] = [];
     
@@ -83,7 +83,7 @@ exports.showStocks = function (req, res) {
       movingAvg['m0'] = ohlcData;
       var payload = {};
       payload.data = ohlcData; 
-      payload.avg = movingAvg; 
+      payload.avg = movingAvg;
       payload.stock = req.params.stock
       payload.time = (new Date).getTime() - t0;
       res.render('index', { name: req.params.stock , data: JSON.stringify(payload)});  

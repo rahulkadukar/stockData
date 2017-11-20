@@ -17,8 +17,9 @@ html(lang="en")
         var avgData = [];
         var dateData = [];
         var seriesTable = [];
-        var seriesValue = {};
-        var seriesValu = {};
+
+        let chartConfig = {};
+        
 
         $("#header").text('Time taken to execute ' + stockData.time + ' milliseconds');
 
@@ -62,6 +63,7 @@ html(lang="en")
             showLastLabel: true
           },
 
-          series: stockDataTable 
+          series: stockDataTable,
+          chart: chartConfig
         });
       });

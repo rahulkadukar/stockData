@@ -89,7 +89,7 @@ function fetchMaxDate(allTickers) {
 
         if (something === -1) {
           tickerDateData.tickerDate = '2009-01-01';
-          tickerDateData.maxDate = '2009-01-01';;
+          tickerDateData.maxDate = '2009-01-01';
         }
 
         tickerDateData.ticker = allTickers[x].ticker;
