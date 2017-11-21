@@ -10,7 +10,7 @@ const pgsql = new Client({
   port: dbConnection.port
 })
 
-let tickerData = ['A'];
+let tickerData = ['MDM'];
 let totalTickers;
 let batchSize = 200;
 var t0;
