@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.2",
+    "nodemon": "^1.12.1",
     "pg": "^7.3.0",
     "promise": "^8.0.1",
     "pug": "^2.0.0-rc.4"

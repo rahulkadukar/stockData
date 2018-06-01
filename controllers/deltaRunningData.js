@@ -10,7 +10,7 @@ const pgsql = new Client({
   port: dbConnection.port
 })
 
-let tickerData = ['MDM'];
+let tickerData = ['LTRPB','CBO','MPAC','TCBIW','WYIGW','CACG','SE','WRLS','GPACU','BTU','EFL','WYIG','ARD','ANDAU','DTUL','CCI-A','ALRN','FFBCW','XGTIW','MPO','EXXI','WTFCW','CRED','OACQU','SMPL','PSA-G','PSA-F','CELH','ROSE','IRDMB','PSET','CATYW','SSTI','LTM','SBNYW','FCAL','LVNTB','BBX','LGF','DTYL','KELYB','HCC','WAFDW','DFVL','RDIB','GDI'];
 let totalTickers;
 let batchSize = 200;
 var t0;

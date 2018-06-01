@@ -20,9 +20,9 @@ exports.showStocks = function (req, res) {
   pgsql.connect();
 
   var t0 = (new Date).getTime();;
-  var sql;
+  let sql;
   
-  sql = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' + req.params.stock + '\' ORDER BY "tickerDate" ASC';
+  sql = 'SELECT * FROM "stocks"."stockData" WHERE "ticker" = \'' + req.params.stock.toUpperCase() + '\' ORDER BY "tickerDate" ASC';
   var stockData = [];
   pgsql.query(sql, function (err, rows) {
     if (err) { 
